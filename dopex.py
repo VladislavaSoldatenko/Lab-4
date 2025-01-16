@@ -41,6 +41,24 @@ def arrange_inventory(selected_items):
 
     return inventory
 
+def find_all_combinations(items, capacity, dp):
+    n = len(items)
+    j = capacity
+    combinations = []
+
+    def backtrack(i, j, path):
+        if i == 0 or j == 0:
+            if j == 0:
+                combinations.append(path)
+            return
+        if dp[i][j] == dp[i - 1][j]:
+            backtrack(i - 1, j, path)
+        if j >= items[i - 1][1] and dp[i][j] == dp[i - 1][j - items[i - 1][1]] + items[i - 1][2]:
+            backtrack(i - 1, j - items[i - 1][1], path + [items[i - 1]])
+
+    backtrack(n, capacity, [])
+    return combinations
+
 def main():
     items = [
         ('rifle', 3, 25),
@@ -60,8 +78,7 @@ def main():
     inhaler = ('inhaler', 1, 5)
     items.remove(inhaler)
 
-    capacity = 8 - inhaler[1]
-
+    capacity = 6
 
     dp = [[0] * (capacity + 1) for _ in range(len(items) + 1)]
     for i in range(1, len(items) + 1):
@@ -72,20 +89,19 @@ def main():
             else:
                 dp[i][j] = dp[i - 1][j]
 
-    selected_items = get_selected_items(items, capacity, dp)
+    combinations = find_all_combinations(items, capacity, dp)
 
-    selected_items.append(inhaler)
+    for combo in combinations:
+        combo.append(inhaler)
 
-    total_value = sum(item[2] for item in selected_items) + 20  
-
-    if total_value > 0:
-        print("Итоговые очки выживания:", total_value)
+    for combo in combinations:
+        total_value = sum(item[2] for item in combo) + 20  
+        print(f"Итоговые очки выживания: {total_value}")
         print("Инвентарь:")
-        inventory = arrange_inventory(selected_items)
+        inventory = arrange_inventory(combo)
         for row in inventory:
             print("[" + "],[".join(row) + "]")
-    else:
-        print("Невозможно достичь положительного итогового счета.")
+        print()
 
 if __name__ == "__main__":
     main()
